@@ -1,186 +1,821 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>2026 건강보험료 시뮬레이터 v0.1</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>건강보험료 시뮬레이터 — 피부양자·지역가입자 판정</title>
 <style>
-  *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f7fb;color:#172033}
-  .wrap{max-width:1180px;margin:0 auto;padding:28px 18px 60px}.hero{background:#172033;color:#fff;border-radius:18px;padding:26px 28px;margin-bottom:18px}
-  h1{margin:0 0 8px;font-size:27px}.sub{opacity:.78;line-height:1.55}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  .card{background:#fff;border:1px solid #e5e9f0;border-radius:16px;padding:20px;box-shadow:0 4px 14px rgba(30,40,60,.04)}
-  .full{grid-column:1/-1}.card h2{font-size:18px;margin:0 0 15px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-  label{font-size:13px;color:#596579}.input{margin-top:5px;width:100%;padding:10px 11px;border:1px solid #ccd3df;border-radius:9px;font-size:15px}
-  .result{background:#f7f9fc;border-radius:12px;padding:14px;margin-top:10px}.big{font-size:25px;font-weight:750}.ok{color:#137a4b}.warn{color:#b25a00}.bad{color:#b42318}
-  .metric{display:flex;justify-content:space-between;border-bottom:1px solid #e8ebf0;padding:9px 0}.metric:last-child{border-bottom:0}
-  .pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#edf2f8;font-size:12px;margin-right:5px}.note{font-size:12px;color:#697386;line-height:1.55}
-  button{border:0;border-radius:9px;padding:10px 14px;background:#315efb;color:white;font-weight:650;cursor:pointer}.actions{display:flex;gap:8px;margin-top:10px}
-  .source{font-size:12px;color:#687386}.footer{margin-top:18px;font-size:12px;color:#687386;line-height:1.6}
-  @media(max-width:800px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.row{grid-template-columns:1fr}}
+  :root{
+    --navy:#1b2a3a;
+    --navy-deep:#0f1b26;
+    --teal:#2f7d70;
+    --teal-light:#e5f1ee;
+    --paper:#f6f4ee;
+    --ink:#1b2a3a;
+    --line:#d8d3c4;
+    --warn:#a4442a;
+    --warn-bg:#f8e9e3;
+    --ok:#2f7d70;
+    --ok-bg:#e5f1ee;
+    --mono: "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    --serif: "Noto Serif KR", "Nanum Myeongjo", Georgia, serif;
+    --sans: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", -apple-system, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.55;
+  }
+  .wrap{max-width:980px;margin:0 auto;padding:40px 24px 80px;}
+  header.top{
+    border-bottom:2px solid var(--navy);
+    padding-bottom:22px;
+    margin-bottom:32px;
+  }
+  header.top .tag{
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:.02em;
+    color:var(--teal);
+    margin-bottom:10px;
+  }
+  header.top h1{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:32px;
+    margin:0 0 10px;
+    letter-spacing:-0.01em;
+  }
+  header.top p{
+    max-width:640px;
+    color:#4a5568;
+    margin:0;
+    font-size:15px;
+  }
+  h2.section-title{
+    font-family:var(--serif);
+    font-size:19px;
+    font-weight:600;
+    margin:0 0 4px;
+    padding-bottom:10px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+  }
+  h2.section-title span.note{
+    font-family:var(--sans);
+    font-size:12.5px;
+    font-weight:400;
+    color:#8a8271;
+  }
+  .card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:24px 26px;
+    margin-bottom:22px;
+  }
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr;}}
+  fieldset{border:none;padding:0;margin:0 0 18px;}
+  legend{
+    font-weight:600;
+    font-size:14.5px;
+    margin-bottom:12px;
+    color:var(--navy-deep);
+  }
+  .field{margin-bottom:13px;}
+  .field label{
+    display:block;
+    font-size:12.5px;
+    color:#5b6572;
+    margin-bottom:4px;
+  }
+  .field .hint{
+    font-size:11px;
+    color:#9a9280;
+    margin-top:3px;
+  }
+  input[type=number], select{
+    width:100%;
+    padding:9px 10px;
+    border:1px solid #c9c3b3;
+    border-radius:2px;
+    font-size:14.5px;
+    font-family:var(--mono);
+    background:#fdfcf9;
+    color:var(--ink);
+  }
+  input[type=number]:focus, select:focus{
+    outline:none;
+    border-color:var(--teal);
+    box-shadow:0 0 0 2px var(--teal-light);
+  }
+  .unit-row{display:flex;align-items:center;gap:8px;}
+  .unit-row .unit{font-size:12.5px;color:#8a8271;white-space:nowrap;}
+  .toggle-row{display:flex;gap:18px;margin-top:2px;}
+  .toggle-row label{
+    display:flex;align-items:center;gap:6px;
+    font-size:13.5px;color:var(--ink);
+    cursor:pointer;
+  }
+  .toggle-row input{width:auto;}
+  .row-inline{display:flex;gap:14px;}
+  .row-inline > div{flex:1;}
+  button.run{
+    display:block;
+    width:100%;
+    padding:14px;
+    background:var(--navy);
+    color:#fff;
+    border:none;
+    border-radius:3px;
+    font-size:15.5px;
+    font-weight:600;
+    font-family:var(--sans);
+    cursor:pointer;
+    letter-spacing:.01em;
+  }
+  button.run:hover{background:var(--navy-deep);}
+  #results{display:none;}
+  .verdict{
+    padding:20px 22px;
+    border-radius:3px;
+    margin-bottom:18px;
+    border:1px solid;
+  }
+  .verdict.fail{background:var(--warn-bg);border-color:#e4c3b3;}
+  .verdict.pass{background:var(--ok-bg);border-color:#bcdcd3;}
+  .verdict .headline{
+    font-family:var(--serif);
+    font-size:20px;
+    font-weight:600;
+    margin-bottom:8px;
+  }
+  .verdict.fail .headline{color:var(--warn);}
+  .verdict.pass .headline{color:var(--ok);}
+  .verdict ul{margin:10px 0 0;padding-left:20px;font-size:13.8px;}
+  .verdict li{margin-bottom:5px;}
+  .breakdown{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px;}
+  .breakdown th, .breakdown td{
+    text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);
+  }
+  .breakdown th{
+    font-size:11.5px;color:#8a8271;font-weight:600;
+    text-transform:uppercase;letter-spacing:.03em;
+  }
+  .breakdown td.num, .breakdown th.num{text-align:right;font-family:var(--mono);}
+  .breakdown tr.total td{font-weight:700;border-top:2px solid var(--navy);border-bottom:none;font-size:15.5px;}
+  .scenario-compare{
+    display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;
+  }
+  @media(max-width:720px){.scenario-compare{grid-template-columns:1fr;}}
+  .scen{
+    border:1px solid var(--line);border-radius:3px;padding:16px 18px;
+  }
+  .scen h3{
+    font-size:13.5px;margin:0 0 8px;color:var(--navy-deep);
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .scen .amount{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--navy);}
+  .scen .amount.small{font-size:16px;color:#5b6572;font-weight:400;}
+  .scen p{font-size:12.5px;color:#6b7280;margin:6px 0 0;}
+  .pill{
+    display:inline-block;font-size:10.5px;font-family:var(--mono);
+    padding:2px 7px;border-radius:20px;background:var(--teal-light);color:var(--teal);
+    margin-left:6px;
+  }
+  .basis{
+    margin-top:26px;font-size:12px;color:#8a8271;border-top:1px solid var(--line);
+    padding-top:16px;
+  }
+  .basis strong{color:#5b6572;}
+  .basis ul{margin:8px 0 0;padding-left:18px;}
+  .basis li{margin-bottom:4px;}
+  .disclaimer{
+    margin-top:20px;padding:14px 16px;background:#fbf7ee;border:1px solid #e8dfc7;
+    border-radius:3px;font-size:12.5px;color:#7a6a3f;
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="hero">
-    <h1>2026 건강보험료 시뮬레이터 v0.1</h1>
-    <div class="sub">2주택·부부 공동명의·직장가입자 + 전업주부 피부양자/지역가입자 전환을 중심으로 계산합니다.</div>
+
+  <header class="top">
+    <div class="tag">건강보험 부과체계 시뮬레이션 · 2026년 기준</div>
+    <h1>우리 집 건강보험료, 어떻게 될까</h1>
+    <p>부부 공동명의 주택 보유 현황을 입력하면, 전업주부 배우자가 직장가입자의 피부양자로 유지되는지, 지역가입자로 전환된다면 보험료가 얼마나 나올지 추정합니다.</p>
+  </header>
+
+  <div class="card">
+    <h2 class="section-title">1. 가입자 정보 <span class="note">남편 직장가입자 / 아내 전업주부 기준</span></h2>
+    <div class="grid2">
+      <fieldset>
+        <legend>남편 (직장가입자)</legend>
+        <div class="field">
+          <label>월 보수액 (세전, 참고용)</label>
+          <div class="unit-row">
+            <input type="number" id="husbandSalary" value="400">
+            <span class="unit">만원 / 월</span>
+          </div>
+          <div class="hint">직장가입자 본인 보험료는 보수월액 기준이라 배우자 재산과 무관합니다. 임대소득 지분이 연 2,000만원을 넘는지만 함께 확인합니다.</div>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>아내 (전업주부 · 피부양자 판정 대상)</legend>
+        <div class="field">
+          <label>주택임대소득 외 다른 종합소득 (근로·연금·이자배당 등)</label>
+          <div class="unit-row">
+            <input type="number" id="wifeOtherIncome" value="0">
+            <span class="unit">만원 / 년</span>
+          </div>
+        </div>
+      </fieldset>
+    </div>
   </div>
 
-  <div class="grid">
-    <section class="card">
-      <h2>가족 / 가입상태</h2>
-      <div class="row">
-        <div><label>남편 상태</label><select id="husbandType" class="input"><option>직장가입자</option></select></div>
-        <div><label>아내 상태</label><select id="wifeType" class="input"><option>전업주부</option></select></div>
+  <div class="card">
+    <h2 class="section-title">2. 주택 1 <span class="note">임대 중</span></h2>
+    <div class="grid2">
+      <div>
+        <div class="field">
+          <label>시세 (참고용)</label>
+          <div class="unit-row"><input type="number" id="h1Market" value="142000"><span class="unit">만원</span></div>
+        </div>
+        <div class="field">
+          <label>공시가격</label>
+          <div class="unit-row"><input type="number" id="h1Gongsi" value="74800"><span class="unit">만원</span></div>
+        </div>
+        <div class="field">
+          <label>구입가 · 취득일 (참고용)</label>
+          <div class="row-inline">
+            <div><input type="number" id="h1BuyPrice" value="85000"></div>
+            <div><input type="text" id="h1BuyDate" value="2020-02"></div>
+          </div>
+        </div>
       </div>
-      <div class="row">
-        <div><label>남편 연 보수(만원)</label><input id="salary" class="input" type="number" value="0" min="0"></div>
-        <div><label>남편 기타 보수외소득(만원/년)</label><input id="husOther" class="input" type="number" value="0" min="0"></div>
+      <div>
+        <div class="field">
+          <label>아내 지분율</label>
+          <div class="unit-row"><input type="number" id="h1Share" value="50"><span class="unit">%</span></div>
+        </div>
+        <div class="field">
+          <label>월세 (주택 전체 기준)</label>
+          <div class="unit-row"><input type="number" id="h1Rent" value="91.1"><span class="unit">만원 / 월</span></div>
+        </div>
+        <div class="field">
+          <label>주택임대사업자 등록 여부</label>
+          <div class="toggle-row">
+            <label><input type="radio" name="h1Reg" value="0" checked> 미등록</label>
+            <label><input type="radio" name="h1Reg" value="1"> 등록 (세무서 사업자등록)</label>
+          </div>
+          <div class="hint">등록 시 필요경비율 60% · 기본공제 400만원, 미등록 시 필요경비율 50% · 기본공제 200만원이 적용됩니다.</div>
+        </div>
       </div>
-      <div class="note">남편 직장보험료 자체는 급여 입력이 있어야 계산됩니다. 급여는 연간 총보수 기준으로 입력하세요.</div>
-    </section>
-
-    <section class="card">
-      <h2>주택 1 — 임대</h2>
-      <div class="row">
-        <div><label>시세(억원)</label><input id="h1market" class="input" type="number" step="0.01" value="14.2"></div>
-        <div><label>공시가격(억원)</label><input id="h1public" class="input" type="number" step="0.01" value="7.48"></div>
-      </div>
-      <div class="row">
-        <div><label>취득가(억원)</label><input id="h1buy" class="input" type="number" step="0.01" value="8.5"></div>
-        <div><label>소유지분(%)</label><input id="h1share" class="input" type="number" value="50" min="0" max="100"></div>
-      </div>
-      <div class="row">
-        <div><label>월세(만원)</label><input id="h1rent" class="input" type="number" step="0.1" value="91.1"></div>
-        <div><label>임대사업자 등록</label><select id="registered" class="input"><option value="no">미등록</option><option value="yes">등록 요건 충족</option></select></div>
-      </div>
-      <div class="note">2주택이므로 주택1 월세는 과세대상으로 모델링합니다. 분리과세(연 월세수입 2천만원 이하)를 기본 가정합니다.</div>
-    </section>
-
-    <section class="card">
-      <h2>주택 2 — 실거주</h2>
-      <div class="row">
-        <div><label>시세(억원)</label><input id="h2market" class="input" type="number" step="0.01" value="4.67"></div>
-        <div><label>공시가격(억원)</label><input id="h2public" class="input" type="number" step="0.01" value="2.71"></div>
-      </div>
-      <div class="row">
-        <div><label>취득가(억원)</label><input id="h2buy" class="input" type="number" step="0.01" value="3.78"></div>
-        <div><label>소유지분(%)</label><input id="h2share" class="input" type="number" value="50" min="0" max="100"></div>
-      </div>
-      <div class="note">실거주 주택은 임대소득 0원으로 처리합니다.</div>
-    </section>
-
-    <section class="card">
-      <h2>기타 소득 — 아내</h2>
-      <div class="row">
-        <div><label>이자·배당 등(만원/년)</label><input id="wifeFinance" class="input" type="number" value="0" min="0"></div>
-        <div><label>연금·기타소득(만원/년)</label><input id="wifeOther" class="input" type="number" value="0" min="0"></div>
-      </div>
-      <div class="note">피부양자 전체소득 2천만원 기준 검토를 위한 입력입니다.</div>
-    </section>
-
-    <section class="card full">
-      <h2>실시간 계산 결과</h2>
-      <div id="summary"></div>
-    </section>
-
-    <section class="card full">
-      <h2>계산 과정</h2>
-      <div id="details"></div>
-    </section>
+    </div>
   </div>
 
-  <div class="footer">
-    <b>기준</b>: 2026년 건강보험료율 7.19%, 지역 재산보험료 부과점수당 금액 211.5원, 재산 기본공제 1억원을 적용합니다.
-    재산 점수표는 2026년 시행령 별표4의 60등급 값을 반영했습니다. 장기요양보험료는 건강보험료의 13.14%(0.9448/7.19)로 표시합니다.
-    실제 공단 부과액은 국세청·지자체 자료 반영시점, 임대사업자 등록의 법적 요건, 과세표준, 소득자료 등에 따라 달라질 수 있습니다.
+  <div class="card">
+    <h2 class="section-title">3. 주택 2 <span class="note">실거주</span></h2>
+    <div class="grid2">
+      <div>
+        <div class="field">
+          <label>시세 (참고용)</label>
+          <div class="unit-row"><input type="number" id="h2Market" value="46700"><span class="unit">만원</span></div>
+        </div>
+        <div class="field">
+          <label>공시가격</label>
+          <div class="unit-row"><input type="number" id="h2Gongsi" value="27100"><span class="unit">만원</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="field">
+          <label>아내 지분율</label>
+          <div class="unit-row"><input type="number" id="h2Share" value="50"><span class="unit">%</span></div>
+        </div>
+        <div class="field">
+          <label>구입가 · 취득일 (참고용)</label>
+          <div class="row-inline">
+            <div><input type="number" id="h2BuyPrice" value="37800"></div>
+            <div><input type="text" id="h2BuyDate" value="2020-02"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+
+  <div class="card">
+    <h2 class="section-title">4. 주택2 매도 시나리오 <span class="note">선택 사항</span></h2>
+    <div class="field">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="sellH2" style="width:auto;" checked onchange="toggleSellSection()">
+        주택2를 매도한다고 가정하고 계산
+      </label>
+    </div>
+    <div id="sellSection">
+      <div class="field">
+        <label>매도 후 거주 형태</label>
+        <div class="toggle-row">
+          <label><input type="radio" name="postHousing" value="own"> 주택1로 이사(자가)</label>
+          <label><input type="radio" name="postHousing" value="jeonse" checked> 전세로 이주</label>
+          <label><input type="radio" name="postHousing" value="wolse"> 월세로 이주</label>
+          <label><input type="radio" name="postHousing" value="unknown"> 미정(자산만 계산)</label>
+        </div>
+      </div>
+      <div class="grid2" id="jeonseFields">
+        <div class="field">
+          <label>전세보증금</label>
+          <div class="unit-row"><input type="number" id="jeonseDeposit" value="30000"><span class="unit">만원</span></div>
+          <div class="hint">주택2 매도 대금 등을 감안한 예상 금액을 넣어보세요.</div>
+        </div>
+        <div class="field">
+          <label>계약자 명의 중 아내 부담 비율</label>
+          <div class="unit-row"><input type="number" id="jeonseShare" value="50"><span class="unit">%</span></div>
+          <div class="hint">임차 보증금은 실제 자금 부담 비율대로 세대의 재산에 반영됩니다.</div>
+        </div>
+      </div>
+      <div class="grid2" id="wolseFields" style="display:none;">
+        <div class="field">
+          <label>월세보증금</label>
+          <div class="unit-row"><input type="number" id="wolseDeposit" value="5000"><span class="unit">만원</span></div>
+        </div>
+        <div class="field">
+          <label>월세</label>
+          <div class="unit-row"><input type="number" id="wolseMonthly" value="80"><span class="unit">만원 / 월</span></div>
+        </div>
+        <div class="field">
+          <label>계약자 명의 중 아내 부담 비율</label>
+          <div class="unit-row"><input type="number" id="wolseShare" value="50"><span class="unit">%</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="section-title">5. 계산 기준값 <span class="note">필요 시 조정</span></h2>
+    <div class="grid2">
+      <div class="field">
+        <label>공정시장가액비율 (재산세 과세표준 산정용)</label>
+        <select id="fairRatio">
+          <option value="60" selected>60% — 2주택 이상 세대 (기본)</option>
+          <option value="45">45% — 1세대 1주택 특례 (시가표준액 6억 초과)</option>
+          <option value="44">44% — 1세대 1주택 특례 (3억 초과 6억 이하)</option>
+          <option value="43">43% — 1세대 1주택 특례 (3억 이하)</option>
+        </select>
+        <div class="hint">두 채를 모두 보유한 세대는 1주택 특례 대상이 아니므로 60%가 기본값입니다. 실제 재산세 고지서상 과세표준을 알고 있다면 아래 직접입력을 사용하세요.</div>
+      </div>
+      <div class="field">
+        <label>재산세 과세표준 직접입력 (선택, 아내 지분 합계)</label>
+        <div class="unit-row">
+          <input type="number" id="manualBase" placeholder="비워두면 공시가격으로 자동계산">
+          <span class="unit">만원</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="run" onclick="runCalc()">건강보험료 계산하기</button>
+
+  <div id="results">
+    <div class="card" style="margin-top:24px;">
+      <h2 class="section-title" style="border-bottom:none;padding-bottom:0;">계산 결과</h2>
+      <div id="verdictBox"></div>
+
+      <table class="breakdown" id="propTable"></table>
+      <div id="housingNoteBox"></div>
+
+      <div id="scenarioBox"></div>
+    </div>
+
+    <div class="basis">
+      <strong>계산에 사용한 기준 (2026년 1월 고시 기준)</strong>
+      <ul>
+        <li>지역가입자 보험료율 7.19%, 재산보험료 부과점수당 금액 211.5원, 월 보험료 하한 20,160원</li>
+        <li>장기요양보험료 = 건강보험료 × 13.14%</li>
+        <li>재산보험료부과점수 = (재산세 과세표준 합계 − 기본공제 1억원)을 60등급표에 대입</li>
+        <li>피부양자 소득요건: 종합소득 합계 연 2,000만원 이하 &amp; 사업소득 없음(단, 주택임대소득은 소득자 등록여부와 무관하게 소득금액이 0원을 초과하면 즉시 요건 위반 — 500만원 소액 예외 미적용)</li>
+        <li>1세대 1주택자(세대 합산 보유주택 1채)이면서 그 주택 공시가격이 12억원 이하인 경우, 월세소득은 소득세 비과세 대상이라 사업소득금액이 0으로 처리되어 위 예외의 영향을 받지 않습니다. 2채 이상 보유 시에는 이 특례가 적용되지 않습니다.</li>
+        <li>피부양자 재산요건: 재산세 과세표준 합계 5.4억원 이하는 무조건 충족 / 5.4억~9억원은 연소득 1,000만원 이하일 때만 충족 / 9억원 초과는 무조건 탈락</li>
+      </ul>
+      <div class="disclaimer">
+        이 계산기는 공개된 법령·고시 수치를 바탕으로 한 추정 시뮬레이션입니다. 실제 재산세 과세표준(공동주택가격 공시 시점, 지자체 감면 여부 등)과 최종 보험료는 국민건강보험공단 홈페이지의 4대보험료 모의계산 또는 고객센터(1577-1000)를 통해 반드시 다시 확인하시기 바랍니다. 특히 아파트 등 주택유형에 따라 임대사업자 등록 가능 여부가 다르므로, 등록 시나리오는 세무사 상담 후 진행을 권장합니다.
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="rentImpactCard">
+    <h2 class="section-title">월세 수령액에 따른 건강보험 영향 <span class="note">슬라이더를 움직이면 바로 반영됩니다</span></h2>
+    <p style="font-size:13px;color:#6b7280;margin:0 0 16px;">주택1 월세를 얼마나 받는지에 따라 <strong>1주택만 보유할 때</strong>와 <strong>지금처럼 2주택을 보유할 때</strong> 아내분의 건강보험료가 어떻게 달라지는지 비교합니다. 위쪽에 입력해두신 공시가격·지분율·임대사업자 등록여부를 그대로 사용합니다.</p>
+
+    <div class="field">
+      <label>주택1 월세 (전체 기준)</label>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <input type="range" id="rentSlider" min="0" max="300" step="1" value="91" style="flex:1;accent-color:#2f7d70;">
+        <div class="unit-row" style="width:150px;flex:none;">
+          <input type="number" id="rentNumber" value="91.1" step="0.1">
+          <span class="unit">만원/월</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="scenario-compare" style="margin-top:16px;">
+      <div class="scen">
+        <h3>1주택 보유 시 (주택1만)</h3>
+        <div class="amount" id="oneHouseAmount">-</div>
+        <p id="oneHouseText"></p>
+      </div>
+      <div class="scen">
+        <h3>2주택 보유 시 (주택1+주택2)</h3>
+        <div class="amount" id="twoHouseAmount">-</div>
+        <p id="twoHouseText"></p>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <svg id="rentChart" viewBox="0 0 640 230" style="width:100%;height:auto;background:#fdfcf9;border:1px solid var(--line);border-radius:3px;"></svg>
+    </div>
+    <div class="hint" style="margin-top:8px;">가로축: 주택1 월세(0~300만원) · 세로축: 아내분 예상 월 건강보험료(원, 장기요양보험료 포함). 점선은 현재 슬라이더 위치입니다.</div>
+  </div>
+
 </div>
 
 <script>
-const scoreTable = [
-[450,22],[900,44],[1350,66],[1800,97],[2250,122],[2700,146],[3150,171],[3600,195],[4050,219],[4500,244],
-[5020,268],[5590,294],[6220,320],[6930,344],[7710,365],[8590,386],[9570,412],[10700,439],[11900,465],[13300,490],
-[14800,516],[16400,535],[18300,559],[20400,586],[22700,611],[25300,637],[28100,659],[31300,681],[34900,706],[38800,731],
-[43200,757],[48100,785],[53600,812],[59700,841],[66500,881],[74000,921],[82400,961],[91800,1001],[103000,1041],[114000,1091],
-[127000,1141],[142000,1191],[158000,1241],[176000,1291],[196000,1341],[218000,1391],[242000,1451],[270000,1511],[300000,1571],
-[330000,1641],[363000,1711],[399300,1781],[439230,1851],[483153,1921],[531468,1991],[584615,2061],[643077,2131],[707385,2201],[778124,2271],[Infinity,2341]
+const SCORE_TABLE = [
+  [0,450,22],[450,900,44],[900,1350,66],[1350,1800,97],[1800,2250,122],
+  [2250,2700,146],[2700,3150,171],[3150,3600,195],[3600,4050,219],[4050,4500,244],
+  [4500,5020,268],[5020,5590,294],[5590,6220,320],[6220,6930,344],[6930,7710,365],
+  [7710,8590,386],[8590,9570,412],[9570,10700,439],[10700,11900,465],[11900,13300,490],
+  [13300,14800,516],[14800,16400,535],[16400,18300,559],[18300,20400,586],[20400,22700,611],
+  [22700,25300,637],[25300,28100,659],[28100,31300,681],[31300,34900,706],[34900,38800,731],
+  [38800,43200,757],[43200,48100,785],[48100,53600,812],[53600,59700,841],[59700,66500,881],
+  [66500,74000,921],[74000,82400,961],[82400,91800,1001],[91800,103000,1041],[103000,114000,1091],
+  [114000,127000,1141],[127000,142000,1191],[142000,158000,1241],[158000,176000,1291],[176000,196000,1341],
+  [196000,218000,1391],[218000,242000,1451],[242000,270000,1511],[270000,300000,1571],[300000,330000,1641],
+  [330000,363000,1711],[363000,399300,1781],[399300,439230,1851],[439230,483153,1921],[483153,531468,1991],
+  [531468,584615,2061],[584615,643077,2131],[643077,707385,2201],[707385,778124,2271],[778124,Infinity,2341]
 ];
+const DEDUCTION = 10000; // 만원, 재산 기본공제 1억원
+const POINT_WON = 211.5;
+const RATE = 0.0719;
+const LTC_RATE = 0.1314;
+const FLOOR = 20160;
+const INCOME_THRESHOLD = 336; // 만원/년
 
-const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
-const man = n => Math.round(n).toLocaleString('ko-KR')+'만원';
-function v(id){return Number(document.getElementById(id).value||0)}
-function scoreAfterDeduction(propertyBaseWon){
-  const after = Math.max(0, propertyBaseWon - 100000000); // 1억원 기본공제
-  const manwon = after/10000;
-  for(const [upper,score] of scoreTable){ if(manwon <= upper) return {after,score}; }
-  return {after,score:0};
+function toggleSellSection(){
+  document.getElementById('sellSection').style.display =
+    document.getElementById('sellH2').checked ? 'block' : 'none';
 }
-function calc(){
-  const h1base = v('h1public')*1e8*0.60*v('h1share')/100;
-  const h2base = v('h2public')*1e8*0.60*v('h2share')/100;
-  const wifeBase = h1base+h2base;
-  const totalBase = wifeBase*2; // same 50:50 structure; shown for household context
-  const rentGrossWife = v('h1rent')*12*v('h1share')/100; // 만원/year
-  const reg = document.getElementById('registered').value==='yes';
-  const expenseRate = reg ? .60 : .50;
-  const basicDeduct = reg ? 400 : 200;
-  const wifeRentalIncome = Math.max(0, rentGrossWife*(1-expenseRate)-basicDeduct);
-  const husbandRentalIncome = wifeRentalIncome; // same 50% share
-  const wifeTotalIncome = wifeRentalIncome + v('wifeFinance') + v('wifeOther');
-  const propertyEligible = wifeBase <= 5.4e8 || (wifeBase <= 9e8 && wifeTotalIncome <= 1000e4);
-  // Housing rental income is excluded from the no-registration 500만원 exception.
-  const rentalBusinessBlocksDependent = wifeRentalIncome > 0;
-  const dependent = propertyEligible && wifeTotalIncome <= 2000e4 && !rentalBusinessBlocksDependent;
+function updateHousingFields(){
+  const v = document.querySelector('input[name=postHousing]:checked').value;
+  document.getElementById('jeonseFields').style.display = (v==='jeonse') ? 'grid' : 'none';
+  document.getElementById('wolseFields').style.display = (v==='wolse') ? 'grid' : 'none';
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.querySelectorAll('input[name=postHousing]').forEach(r=>r.addEventListener('change', updateHousingFields));
+  updateHousingFields();
 
-  const prop = scoreAfterDeduction(wifeBase);
-  const incomeAnnual = wifeTotalIncome;
-  const incomeMonthly = incomeAnnual/12;
-  const healthIncome = incomeMonthly*0.0719; // amounts in won
-  const propertyHealth = prop.score*211.5;
-  let healthRegional = healthIncome + propertyHealth;
-  healthRegional = Math.max(20160, Math.min(4591740, healthRegional));
-  const care = healthRegional*(0.9448/7.19);
-  const regionalTotal = healthRegional+care;
+  const rentSlider = document.getElementById('rentSlider');
+  const rentNumber = document.getElementById('rentNumber');
+  rentSlider.addEventListener('input', ()=>{ rentNumber.value = rentSlider.value; updateRentImpact(); });
+  rentNumber.addEventListener('input', updateRentImpact);
+  ['h1Gongsi','h1Share','h2Gongsi','h2Share','wifeOtherIncome'].forEach(id=>{
+    document.getElementById(id).addEventListener('input', updateRentImpact);
+  });
+  document.getElementById('fairRatio').addEventListener('change', updateRentImpact);
+  document.querySelectorAll('input[name=h1Reg]').forEach(r=>r.addEventListener('change', updateRentImpact));
+  updateRentImpact();
+});
 
-  const salary = v('salary')*10000;
-  const husbandBaseHealth = salary/12*.0719;
-  const husbandOther = v('husOther')*10000/12;
-  const husbandExtra = Math.max(0,(husbandOther+husbandRentalIncome*10000/12-20000000/12)*.0719);
+function fmt(n){ return Math.round(n).toLocaleString('ko-KR'); }
+function fmtEok(manwon){
+  const eok = manwon/10000;
+  return eok.toFixed(2)+'억원 ('+fmt(manwon)+'만원)';
+}
 
-  document.getElementById('summary').innerHTML = `
-    <div class="row">
-      <div class="result"><div class="note">주택 수</div><div class="big">2주택</div><div class="note">부부 공동명의 50:50</div></div>
-      <div class="result"><div class="note">아내 피부양자</div><div class="big ${dependent?'ok':'bad'}">${dependent?'유지 가능':'탈락 가능'}</div>
-      <div class="note">${dependent?'현재 입력값상 소득·재산 요건 검토 통과':'주택임대소득 사업소득금액이 0원이 아니므로 피부양자 요건에서 제외되는 시나리오'}</div></div>
-    </div>
-    <div class="row">
-      <div class="result"><div class="note">아내 지역 건강보험료(전환 가정)</div><div class="big">${won(healthRegional)}</div><div class="note">장기요양 포함 약 ${won(regionalTotal)}/월</div></div>
-      <div class="result"><div class="note">남편 임대소득금액</div><div class="big">${man(husbandRentalIncome)}</div><div class="note">남편은 직장가입자라 재산보험료 없음</div></div>
-    </div>
-  `;
+function scoreFromBase(base){
+  if(base<=450) return 22;
+  for(const [lo,hi,score] of SCORE_TABLE){
+    if(base>lo && base<=hi) return score;
+  }
+  return 2341;
+}
 
-  document.getElementById('details').innerHTML = `
-    <div class="metric"><span>주택1 아내 지분 월세수입</span><b>${man(rentGrossWife)} /년</b></div>
-    <div class="metric"><span>임대소득 필요경비율</span><b>${expenseRate*100}%</b></div>
-    <div class="metric"><span>임대소득 기본공제</span><b>${man(basicDeduct)}</b></div>
-    <div class="metric"><span>아내 주택임대 사업소득금액</span><b>${man(wifeRentalIncome)}</b></div>
-    <div class="metric"><span>아내 주택1 재산세 과세표준(추정)</span><b>${won(h1base)}</b></div>
-    <div class="metric"><span>아내 주택2 재산세 과세표준(추정)</span><b>${won(h2base)}</b></div>
-    <div class="metric"><span>아내 재산세 과세표준 합계</span><b>${won(wifeBase)}</b></div>
-    <div class="metric"><span>지역가입 재산 기본공제</span><b>1억원</b></div>
-    <div class="metric"><span>공제 후 재산</span><b>${won(prop.after)}</b></div>
-    <div class="metric"><span>재산보험료 점수</span><b>${prop.score.toLocaleString()}점</b></div>
-    <div class="metric"><span>재산 건강보험료</span><b>${won(propertyHealth)}</b></div>
-    <div class="metric"><span>아내 소득월액(지역가입 가정)</span><b>${won(incomeMonthly)}</b></div>
-    <div class="metric"><span>소득 건강보험료</span><b>${won(healthIncome)}</b></div>
-    <div class="metric"><span>지역 건강보험료</span><b>${won(healthRegional)}</b></div>
-    <div class="metric"><span>장기요양보험료</span><b>${won(care)}</b></div>
-    <p class="note">※ 이 버전은 주택1 월세만 있는 2주택 시나리오를 중심으로 한 계산 프로토타입입니다. 보증금, 자동차(2024년부터 지역보험료 폐지), 임대소득 자료 반영시점, 소득월액 산정의 세부 예외는 다음 버전에서 확장합니다.</p>
+function rentalIncome(monthlyRentTotal, sharePct, registered){
+  const annualIncomeTotal = monthlyRentTotal*12; // 만원, 주택 전체 연간 수입
+  const shareIncome = annualIncomeTotal * (sharePct/100); // 지분 수입금액
+  const expenseRate = registered ? 0.6 : 0.5;
+  const deduction = registered ? 400 : 200;
+  const taxableIncome = Math.max(0, shareIncome*(1-expenseRate) - deduction);
+  return {shareIncome, taxableIncome};
+}
+
+function localPremium(annualIncomeManwon, propertyBaseManwon){
+  const baseForScore = Math.max(0, propertyBaseManwon - DEDUCTION);
+  const score = scoreFromBase(baseForScore);
+  const propertyPremium = score*POINT_WON;
+
+  let incomePremium = 0;
+  if(annualIncomeManwon > INCOME_THRESHOLD){
+    const monthlyIncomeWon = (annualIncomeManwon - INCOME_THRESHOLD)*10000/12;
+    incomePremium = monthlyIncomeWon*RATE;
+  }
+  const subtotal = Math.max(FLOOR, propertyPremium+incomePremium);
+  const ltc = subtotal*LTC_RATE;
+  return {score, propertyPremium, incomePremium, subtotal, ltc, total: subtotal+ltc};
+}
+
+function computeScenario(rentManwon, includeHouse2){
+  const h1Gongsi = parseFloat(document.getElementById('h1Gongsi').value)||0;
+  const h1Share = parseFloat(document.getElementById('h1Share').value)||0;
+  const h2Gongsi = parseFloat(document.getElementById('h2Gongsi').value)||0;
+  const h2Share = parseFloat(document.getElementById('h2Share').value)||0;
+  const fairRatio = parseFloat(document.getElementById('fairRatio').value)/100;
+  const wifeOtherIncome = parseFloat(document.getElementById('wifeOtherIncome').value)||0;
+  const h1Reg = document.querySelector('input[name=h1Reg]:checked').value === '1';
+
+  const h1Base = h1Gongsi*(h1Share/100)*fairRatio;
+  const h2Base = includeHouse2 ? h2Gongsi*(h2Share/100)*fairRatio : 0;
+  const totalBase = h1Base + h2Base;
+  const ownedHouses = includeHouse2 ? 2 : 1;
+  const exempt = ownedHouses===1 && h1Gongsi<=120000;
+
+  const shareIncome = rentManwon*12*(h1Share/100);
+  let taxableIncome = 0;
+  if(!exempt){
+    const expenseRate = h1Reg?0.6:0.5;
+    const deduction = h1Reg?400:200;
+    taxableIncome = Math.max(0, shareIncome*(1-expenseRate)-deduction);
+  }
+  const totalIncome = taxableIncome + wifeOtherIncome;
+  const businessOK = taxableIncome===0;
+  const totalIncomeOK = totalIncome<=2000;
+  let propOK;
+  if(totalBase<=54000) propOK=true;
+  else if(totalBase<=90000) propOK = totalIncome<=1000;
+  else propOK=false;
+  const dependentOK = businessOK && totalIncomeOK && propOK;
+  let premium=0;
+  if(!dependentOK) premium = localPremium(totalIncome, totalBase).total;
+  return {dependentOK, premium, totalBase, taxableIncome, exempt};
+}
+
+function updateRentImpact(){
+  const rentEl = document.getElementById('rentNumber');
+  if(!rentEl) return;
+  let rent = parseFloat(rentEl.value)||0;
+  document.getElementById('rentSlider').value = Math.min(300, Math.max(0, rent));
+
+  const one = computeScenario(rent, false);
+  const two = computeScenario(rent, true);
+
+  document.getElementById('oneHouseAmount').textContent = one.dependentOK ? '0원' : fmt(one.premium)+'원';
+  document.getElementById('oneHouseText').textContent = one.dependentOK
+    ? (one.exempt ? '1주택자 비과세 적용 — 피부양자 유지' : '피부양자 요건 충족')
+    : '지역가입자 전환 · 월 '+fmt(one.premium)+'원';
+
+  document.getElementById('twoHouseAmount').textContent = two.dependentOK ? '0원' : fmt(two.premium)+'원';
+  document.getElementById('twoHouseText').textContent = two.dependentOK
+    ? '피부양자 유지 (임대소득이 공제 범위 내)'
+    : '지역가입자 전환 · 월 '+fmt(two.premium)+'원';
+
+  drawRentChart(rent);
+}
+
+function drawRentChart(currentRent){
+  const svg = document.getElementById('rentChart');
+  if(!svg) return;
+  const samples = [];
+  for(let r=0; r<=300; r+=5) samples.push(r);
+  const onePts = samples.map(r=>computeScenario(r, false).premium);
+  const twoPts = samples.map(r=>computeScenario(r, true).premium);
+  const maxVal = Math.max(...onePts, ...twoPts, 50000) * 1.15;
+
+  const left=56, right=616, top=16, bottom=176;
+  const x = r => left + (r/300)*(right-left);
+  const y = v => bottom - (v/maxVal)*(bottom-top);
+
+  const toPath = pts => samples.map((r,i)=>`${i===0?'M':'L'}${x(r).toFixed(1)},${y(pts[i]).toFixed(1)}`).join(' ');
+
+  const gridLines = [0,0.25,0.5,0.75,1].map(f=>{
+    const val = maxVal*f;
+    const yy = y(val);
+    return `<line x1="${left}" y1="${yy}" x2="${right}" y2="${yy}" stroke="#e4e0d3" stroke-width="1"/>
+      <text x="${left-8}" y="${yy+4}" font-size="10" fill="#9a9280" text-anchor="end" font-family="monospace">${fmt(val)}</text>`;
+  }).join('');
+
+  const xLabels = [0,50,100,150,200,250,300].map(r=>{
+    return `<text x="${x(r)}" y="${bottom+18}" font-size="10" fill="#9a9280" text-anchor="middle" font-family="monospace">${r}</text>`;
+  }).join('');
+
+  const curRentX = x(Math.min(300,Math.max(0,currentRent)));
+  const oneAtCur = computeScenario(currentRent,false).premium;
+  const twoAtCur = computeScenario(currentRent,true).premium;
+
+  svg.innerHTML = `
+    ${gridLines}
+    <line x1="${left}" y1="${bottom}" x2="${right}" y2="${bottom}" stroke="#8a8271" stroke-width="1.2"/>
+    ${xLabels}
+    <text x="${(left+right)/2}" y="${bottom+34}" font-size="10.5" fill="#6b7280" text-anchor="middle">월세 (만원/월)</text>
+
+    <path d="${toPath(twoPts)}" fill="none" stroke="#a4442a" stroke-width="2.4"/>
+    <path d="${toPath(onePts)}" fill="none" stroke="#2f7d70" stroke-width="2.4"/>
+
+    <line x1="${curRentX}" y1="${top}" x2="${curRentX}" y2="${bottom}" stroke="#1b2a3a" stroke-width="1.2" stroke-dasharray="4,3"/>
+    <circle cx="${curRentX}" cy="${y(twoAtCur)}" r="4.5" fill="#a4442a"/>
+    <circle cx="${curRentX}" cy="${y(oneAtCur)}" r="4.5" fill="#2f7d70"/>
+
+    <g>
+      <rect x="${right-158}" y="${top}" width="12" height="12" fill="#2f7d70"/>
+      <text x="${right-142}" y="${top+10}" font-size="11" fill="#1b2a3a">1주택 보유 시</text>
+      <rect x="${right-158}" y="${top+18}" width="12" height="12" fill="#a4442a"/>
+      <text x="${right-142}" y="${top+28}" font-size="11" fill="#1b2a3a">2주택 보유 시</text>
+    </g>
   `;
 }
-document.querySelectorAll('input,select').forEach(el=>el.addEventListener('input',calc));
-calc();
+
+function runCalc(){
+  const h1Gongsi = parseFloat(document.getElementById('h1Gongsi').value)||0;
+  const h1Share = parseFloat(document.getElementById('h1Share').value)||0;
+  const h1Rent = parseFloat(document.getElementById('h1Rent').value)||0;
+  const h1Reg = document.querySelector('input[name=h1Reg]:checked').value === '1';
+
+  const h2Gongsi = parseFloat(document.getElementById('h2Gongsi').value)||0;
+  const h2Share = parseFloat(document.getElementById('h2Share').value)||0;
+
+  const fairRatio = parseFloat(document.getElementById('fairRatio').value)/100;
+  const manualBase = document.getElementById('manualBase').value;
+  const wifeOtherIncome = parseFloat(document.getElementById('wifeOtherIncome').value)||0;
+  const husbandSalary = parseFloat(document.getElementById('husbandSalary').value)||0;
+
+  const h1Base = h1Gongsi * (h1Share/100) * fairRatio;
+  const h2Base = h2Gongsi * (h2Share/100) * fairRatio;
+
+  const sellH2 = document.getElementById('sellH2').checked;
+  const postHousing = sellH2 ? document.querySelector('input[name=postHousing]:checked').value : null;
+
+  let rentedHouse1 = true; // 주택1을 계속 임대 중인지
+  let housingAddBase = 0;
+  let housingNote = '';
+
+  if(sellH2){
+    if(postHousing === 'own'){
+      // 주택2 매도 후 주택1로 입주 -> 주택1 임대 종료로 가정
+      rentedHouse1 = false;
+      housingNote = '주택2 매도 후 주택1로 입주 — 주택1 임대가 종료된다고 가정합니다.';
+    } else if(postHousing === 'jeonse'){
+      const dep = parseFloat(document.getElementById('jeonseDeposit').value)||0;
+      const share = parseFloat(document.getElementById('jeonseShare').value)||0;
+      housingAddBase = dep*0.3*(share/100);
+      housingNote = '전세보증금의 30%가 임차인(아내 부담분) 재산으로 반영됩니다.';
+    } else if(postHousing === 'wolse'){
+      const dep = parseFloat(document.getElementById('wolseDeposit').value)||0;
+      const monthly = parseFloat(document.getElementById('wolseMonthly').value)||0;
+      const share = parseFloat(document.getElementById('wolseShare').value)||0;
+      const converted = dep + (monthly/0.025);
+      housingAddBase = converted*0.3*(share/100);
+      housingNote = '월세는 [보증금 + 월세/0.025]로 환산한 금액의 30%가 재산으로 반영됩니다.';
+    } else {
+      housingNote = '거주 형태 미정 — 주택1 지분 재산만 반영하고 전월세 재산은 계산에서 제외했습니다.';
+    }
+    if(h1Gongsi <= 120000){
+      housingNote += ' 매도 후 세대 보유주택이 주택1 1채가 되고 공시가격이 12억원 이하이므로, 주택1 월세소득은 1세대 1주택자 비과세 규정이 적용되어 소득세·건강보험료 산정 모두에서 사업소득 없음으로 처리됩니다(임대를 계속하는 경우).';
+    } else {
+      housingNote += ' 다만 주택1 공시가격이 12억원을 초과해 1주택자라도 고가주택 임대소득은 과세·건보료 반영 대상입니다.';
+    }
+  }
+
+  const autoTotalBase = sellH2 ? (h1Base + housingAddBase) : (h1Base + h2Base);
+  const totalBase = manualBase ? parseFloat(manualBase) : autoTotalBase;
+
+  const rentalUnreg = rentalIncome(h1Rent, h1Share, false);
+  const rentalReg = rentalIncome(h1Rent, h1Share, true);
+
+  // 1세대 1주택 임대소득 비과세 판정: 매도로 세대 보유주택이 1채가 되고
+  // 그 집의 공시가격이 12억원 이하이면 월세소득은 소득세 비과세 -> 건보료 소득 산정에서도 제외
+  const ownedHouses = sellH2 ? 1 : 2;
+  const oneHouseExempt = rentedHouse1 && ownedHouses === 1 && h1Gongsi <= 120000;
+
+  let rental;
+  if(!rentedHouse1){
+    rental = {shareIncome:0, taxableIncome:0};
+  } else if(oneHouseExempt){
+    rental = {shareIncome: (h1Reg?rentalReg:rentalUnreg).shareIncome, taxableIncome:0};
+  } else {
+    rental = h1Reg ? rentalReg : rentalUnreg;
+  }
+
+  const totalIncome = rental.taxableIncome + wifeOtherIncome;
+
+  // 피부양자 판정
+  const businessIncomeOK = rental.taxableIncome === 0; // 주택임대소득은 소액예외 없음
+  const totalIncomeOK = totalIncome <= 2000;
+  let propertyOK, propertyNote;
+  if(totalBase <= 54000){
+    propertyOK = true; propertyNote = '재산세 과세표준 5.4억원 이하 → 재산요건 충족';
+  } else if(totalBase <= 90000){
+    propertyOK = totalIncome <= 1000;
+    propertyNote = '재산세 과세표준 5.4억~9억원 구간 → 연소득 1,000만원 이하일 때만 충족';
+  } else {
+    propertyOK = false; propertyNote = '재산세 과세표준 9억원 초과 → 소득과 무관하게 탈락';
+  }
+
+  const dependentOK = businessIncomeOK && totalIncomeOK && propertyOK;
+
+  // 결과 출력
+  const verdictBox = document.getElementById('verdictBox');
+  let reasonsFail = [];
+  if(!businessIncomeOK) reasonsFail.push('주택1 임대소득 중 아내 지분에서 사업소득금액 '+fmt(rental.taxableIncome)+'만원이 발생 — 주택임대소득은 등록 여부와 무관하게 500만원 소액 예외가 적용되지 않아, 1원이라도 발생하면 사업소득 요건을 충족하지 못합니다.');
+  if(!totalIncomeOK) reasonsFail.push('종합소득 합계 '+fmt(totalIncome)+'만원이 2,000만원을 초과합니다.');
+  if(businessIncomeOK && totalIncomeOK && !propertyOK) reasonsFail.push(propertyNote);
+
+  if(dependentOK){
+    verdictBox.innerHTML = `<div class="verdict pass">
+      <div class="headline">아내는 남편의 피부양자 자격을 유지할 수 있습니다</div>
+      <div>아내 지분 재산세 과세표준 합계는 ${fmtEok(totalBase)}이고, 주택임대소득에 따른 사업소득금액은 ${fmt(rental.taxableIncome)}만원으로 계산되어 피부양자 소득·재산 요건을 모두 충족합니다.</div>
+    </div>`;
+  } else {
+    verdictBox.innerHTML = `<div class="verdict fail">
+      <div class="headline">아내는 피부양자 자격을 상실하고 지역가입자로 전환될 가능성이 높습니다</div>
+      <ul>${reasonsFail.map(r=>'<li>'+r+'</li>').join('')}</ul>
+    </div>`;
+  }
+
+  // 재산 표
+  const propTable = document.getElementById('propTable');
+  let rows = `<tr><th>항목</th><th class="num">금액</th></tr>`;
+  rows += `<tr><td>주택1 재산세 과세표준 (아내 지분 ${h1Share}%)</td><td class="num">${fmt(h1Base)} 만원</td></tr>`;
+  if(sellH2){
+    rows += `<tr><td>주택2</td><td class="num">매도 (제외)</td></tr>`;
+    if(housingAddBase>0){
+      rows += `<tr><td>매도 후 임차보증금 환산 재산 (아내 부담분)</td><td class="num">${fmt(housingAddBase)} 만원</td></tr>`;
+    }
+  } else {
+    rows += `<tr><td>주택2 재산세 과세표준 (아내 지분 ${h2Share}%)</td><td class="num">${fmt(h2Base)} 만원</td></tr>`;
+  }
+  rows += `<tr><td>재산세 과세표준(등) 합계</td><td class="num">${fmt(totalBase)} 만원</td></tr>`;
+  rows += `<tr><td>주택1 월세 중 아내 지분 연 수입금액</td><td class="num">${fmt(rental.shareIncome)} 만원</td></tr>`;
+  rows += `<tr><td>주택임대 사업소득금액 ${rentedHouse1 ? (oneHouseExempt ? '(1주택자 비과세 적용)' : '('+(h1Reg?'등록':'미등록')+' 기준)') : '(임대 종료)'}</td><td class="num">${fmt(rental.taxableIncome)} 만원</td></tr>`;
+  rows += `<tr><td>아내 종합소득 합계 (임대소득+기타)</td><td class="num">${fmt(totalIncome)} 만원</td></tr>`;
+  propTable.innerHTML = rows;
+  document.getElementById('housingNoteBox').innerHTML = (sellH2 && housingNote)
+    ? `<p style="font-size:12px;color:#8a8271;margin-top:8px;">${housingNote}</p>` : '';
+
+  // 시나리오: 현재입력 기준 vs 등록임대사업자였다면
+  const scenarioBox = document.getElementById('scenarioBox');
+  if(!dependentOK){
+    const localCalc = localPremium(totalIncome, totalBase);
+
+    const regRental = rentalReg;
+    const regTotalIncome = regRental.taxableIncome + wifeOtherIncome;
+    const regDependentOK = regRental.taxableIncome===0 && regTotalIncome<=2000 &&
+      (totalBase<=54000 || (totalBase<=90000 && regTotalIncome<=1000));
+
+    scenarioBox.innerHTML = `
+      <h2 class="section-title" style="margin-top:22px;">지역가입자 전환 시 예상 보험료 (아내, 1인 세대 기준)</h2>
+      <table class="breakdown">
+        <tr><th>항목</th><th class="num">금액 / 월</th></tr>
+        <tr><td>재산보험료 (${localCalc.score}점 × 211.5원)</td><td class="num">${fmt(localCalc.propertyPremium)} 원</td></tr>
+        <tr><td>소득보험료</td><td class="num">${fmt(localCalc.incomePremium)} 원</td></tr>
+        <tr><td>건강보험료 소계 (하한 20,160원 적용)</td><td class="num">${fmt(localCalc.subtotal)} 원</td></tr>
+        <tr><td>장기요양보험료 (건보료 × 13.14%)</td><td class="num">${fmt(localCalc.ltc)} 원</td></tr>
+        <tr class="total"><td>월 합계 예상 보험료</td><td class="num">${fmt(localCalc.total)} 원</td></tr>
+      </table>
+
+      <div class="scenario-compare">
+        <div class="scen">
+          <h3>${sellH2 ? '주택2 매도 반영' : '현재 입력 기준'} <span class="pill">${rentedHouse1 ? (h1Reg?'등록':'미등록') : '주택1 임대 종료'}</span></h3>
+          <div class="amount">${fmt(localCalc.total)}원<span class="amount small"> / 월</span></div>
+          <p>${rentedHouse1 ? '주택1 임대소득이 남아 있어 피부양자 탈락 → 지역가입자 보험료 부과' : '주택1 임대를 종료했지만, 재산 요건 또는 다른 소득 요건에서 여전히 탈락 사유가 있습니다.'}</p>
+        </div>
+        ${(rentedHouse1 && !oneHouseExempt) ? `
+        <div class="scen">
+          <h3>주택1을 임대사업자로 등록한다면</h3>
+          <div class="amount">${regDependentOK ? '0원' : '지역가입자 전환'}<span class="amount small">${regDependentOK ? ' (피부양자 유지 가능)' : ''}</span></div>
+          <p>등록 시 필요경비율 60%·공제 400만원이 적용되어 사업소득금액이 ${fmt(regRental.taxableIncome)}만원으로 계산됩니다. ${regDependentOK ? '이 경우 소득 요건상 사업소득이 없는 것으로 처리되어 피부양자 유지가 가능해질 수 있습니다.' : '다만 이 경우에도 소득금액이 남아 피부양자 유지가 어렵습니다.'} 주택유형별 등록 가능 여부는 별도 확인이 필요합니다.</p>
+        </div>` : rentedHouse1 ? `
+        <div class="scen">
+          <h3>1주택자 비과세는 이미 적용 중</h3>
+          <div class="amount small">등록 여부와 무관</div>
+          <p>세대 보유주택이 1채이고 공시가격이 12억원 이하라 임대사업자 등록 여부와 상관없이 월세소득이 비과세로 처리됩니다. 그런데도 지역가입자로 표시된다면 재산 요건 또는 기타 종합소득 요건이 원인이니 위 판정 사유를 확인하세요.</p>
+        </div>` : `
+        <div class="scen">
+          <h3>주택1 임대 종료 후 남는 사유</h3>
+          <div class="amount small">재산·기타소득 요건 재확인 필요</div>
+          <p>임대소득이 사라져도 재산세 과세표준이나 다른 소득이 기준을 넘으면 여전히 지역가입자가 될 수 있습니다. 위 판정 사유를 확인하세요.</p>
+        </div>`}
+      </div>
+    `;
+  } else {
+    scenarioBox.innerHTML = `<p style="margin-top:18px;font-size:13.5px;color:#5b6572;">피부양자 자격을 유지하므로 아내에게 별도로 부과되는 건강보험료는 없습니다. 다만 남편의 보수 외 소득(주택임대소득 지분 등)이 연 2,000만원을 초과하면 남편에게 소득월액보험료가 추가될 수 있으니, 두 사람 지분 임대소득 합계도 함께 확인하세요.</p>`;
+  }
+
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'});
+}
 </script>
 </body>
 </html>
